@@ -58,6 +58,16 @@ uninstall_mssql(){
     esac
   fi
 
+  # Optionally remove the image used by this deployment
+  if [ -n "${IMAGE:-}" ]; then
+    if ${CONTAINER_RUNTIME:-docker} image inspect "$IMAGE" >/dev/null 2>&1; then
+      echo "Removing image $IMAGE..."
+      ${CONTAINER_RUNTIME:-docker} image rm "$IMAGE" || true
+    else
+      echo "Image $IMAGE not found; skipping image removal." >&2
+    fi
+  fi
+
   echo "Uninstall complete for $CONTAINER_NAME."
 }
 

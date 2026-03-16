@@ -2,19 +2,28 @@
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
-# Source shared helpers (common.sh) relative to this script's directory.
-DB_DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
-COMMON="$DB_DIR/../scripts/common.sh"
+# Determine base directory (either provided by caller via BASE_DIR, or derive from $0)
+DB_DIR="${BASE_DIR:-$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)}"
+COMMON_CAND1="$DB_DIR/../scripts/common.sh"
+COMMON_CAND2="$DB_DIR/scripts/common.sh"
 
-if [ -f "$COMMON" ]; then
+if [ -f "$COMMON_CAND1" ]; then
+    COMMON="$COMMON_CAND1"
+elif [ -f "$COMMON_CAND2" ]; then
+    COMMON="$COMMON_CAND2"
+else
+    COMMON=""
+fi
+
+if [ -n "$COMMON" ] && [ -f "$COMMON" ]; then
     # shellcheck source=/dev/null
     . "$COMMON"
-    # use DB_DIR to avoid being overwritten by sourced scripts
-    . "$DB_DIR/relational/oracle/install.sh"
-    . "$DB_DIR/relational/mysql/install.sh"
-    . "$DB_DIR/relational/mssql/install.sh"
-    . "$DB_DIR/relational/postgresql/install.sh"
+    # Run relational installers as separate shells so each script can resolve its own $0
+    sh "$DB_DIR/relational/oracle/install.sh" "$@"
+    sh "$DB_DIR/relational/mysql/install.sh" "$@"
+    sh "$DB_DIR/relational/mssql/install.sh" "$@"
+    sh "$DB_DIR/relational/postgresql/install.sh" "$@"
 else
-    echo "Error: common.sh not found at $COMMON" >&2
+    echo "Error: common.sh not found in expected locations: $COMMON_CAND1 or $COMMON_CAND2" >&2
     exit 1
 fi

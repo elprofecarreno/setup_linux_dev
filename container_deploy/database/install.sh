@@ -12,6 +12,8 @@ if [ -f "$COMMON" ]; then
     # use DB_DIR to avoid being overwritten by sourced scripts
     source "$DB_DIR/relational/oracle/install.sh"
     source "$DB_DIR/relational/mysql/install.sh"
+    source "$DB_DIR/relational/mssql/install.sh"
+    source "$DB_DIR/relational/postgresql/install.sh"
 else
     echo "Error: common.sh not found at $COMMON" >&2
     exit 1

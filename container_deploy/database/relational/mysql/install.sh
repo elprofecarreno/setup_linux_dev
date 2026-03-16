@@ -19,10 +19,6 @@ fi
 deploy_mysql(){
     detect_runtime || exit 1
 
-    # Defaults
-    IMAGE=${IMAGE:-docker.io/mysql:8.0}
-    PORT=${PORT:-3306}
-
     # If container exists, either report running or start it
     if "${CONTAINER_RUNTIME:-docker}" ps -a --format '{{.Names}}' | grep -wq "$CONTAINER_NAME"; then
         if "${CONTAINER_RUNTIME:-docker}" ps --format '{{.Names}}' | grep -wq "$CONTAINER_NAME"; then

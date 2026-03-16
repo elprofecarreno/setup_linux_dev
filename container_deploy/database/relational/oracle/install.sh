@@ -19,10 +19,6 @@ fi
 deploy_oracle(){
     detect_runtime || exit 1
 
-    # Defaults
-    IMAGE=${IMAGE:-container-registry.oracle.com/database/express:21.3.0-xe}
-    PORT=${PORT:-1521}
-
     # If container exists, either report running or start it
     if "${CONTAINER_RUNTIME:-docker}" ps -a --format '{{.Names}}' | grep -wq "$CONTAINER_NAME"; then
         if "${CONTAINER_RUNTIME:-docker}" ps --format '{{.Names}}' | grep -wq "$CONTAINER_NAME"; then

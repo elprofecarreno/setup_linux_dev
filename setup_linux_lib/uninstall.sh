@@ -16,6 +16,7 @@ fi
 
 # Create a version of GENERICS_LIB with commas replaced by spaces (do not modify .env)
 GENERICS_LIB_SPACED=$(printf '%s' "$GENERICS_LIB" | tr ',' ' ')
+UBUNTU_LIB_SPACED=$(printf '%s' "$UBUNTU_LIB" | tr ',' ' ')
 
 # Function to validate that all required environment variables are set
 validate_env() {
@@ -59,8 +60,8 @@ remove_docker_alias() {
 uninstall_packages() {
     case "$PACKAGE_MANAGER" in
         apt)
-            echo "Removing $UBUNTU_LIB, $GENERICS_LIB_SPACED, $CONTAINER_LIB..."
-            sudo apt remove --purge -y $UBUNTU_LIB $GENERICS_LIB_SPACED $CONTAINER_LIB
+            echo "Removing $UBUNTU_LIB_SPACED, $GENERICS_LIB_SPACED, $CONTAINER_LIB..."
+            sudo apt remove --purge -y $UBUNTU_LIB_SPACED $GENERICS_LIB_SPACED $CONTAINER_LIB
             echo "Autoremove unnecessary dependencies..."
             sudo apt autoremove -y
             ;;

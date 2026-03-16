@@ -6,17 +6,17 @@ set -e
 ROOT_DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 
 echo "Running container_deploy uninstaller..."
-if [ -x "$ROOT_DIR/container_deploy/uninstall.sh" ]; then
+if [ -f "$ROOT_DIR/container_deploy/uninstall.sh" ]; then
   sh "$ROOT_DIR/container_deploy/uninstall.sh" "$@"
 else
-  echo "Warning: $ROOT_DIR/container_deploy/uninstall.sh not found or not executable; skipping." >&2
+  echo "Warning: $ROOT_DIR/container_deploy/uninstall.sh not found; skipping." >&2
 fi
 
 echo "Running setup_linux_lib uninstaller..."
-if [ -x "$ROOT_DIR/setup_linux_lib/uninstall.sh" ]; then
+if [ -f "$ROOT_DIR/setup_linux_lib/uninstall.sh" ]; then
   sh "$ROOT_DIR/setup_linux_lib/uninstall.sh" "$@"
 else
-  echo "Warning: $ROOT_DIR/setup_linux_lib/uninstall.sh not found or not executable; skipping." >&2
+  echo "Warning: $ROOT_DIR/setup_linux_lib/uninstall.sh not found; skipping." >&2
 fi
 
 echo "Top-level uninstallation completed."

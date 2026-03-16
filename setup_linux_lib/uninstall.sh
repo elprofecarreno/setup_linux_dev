@@ -1,16 +1,25 @@
-#!/bin/bash
+#!/bin/sh
 
 # Script to uninstall development tools and common utilities installed by setup_dev_env.sh
 # Works on Ubuntu/Debian, Fedora, and Arch-based distros
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
-# LOAD CONFIGURATION
-source .env
+# LOAD CONFIGURATION (load .env from the script directory)
+SCRIPT_DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    . "$SCRIPT_DIR/.env"
+else
+    echo "Configuration file .env not found in $SCRIPT_DIR"
+    exit 1
+fi
+
+# Create a version of GENERICS_LIB with commas replaced by spaces (do not modify .env)
+GENERICS_LIB_SPACED=$(printf '%s' "$GENERICS_LIB" | tr ',' ' ')
 
 # Function to validate that all required environment variables are set
 validate_env() {
-    if [[ -z "$GENERICS_LIB" || -z "$UBUNTU_LIB" || -z "$FEDORA_LIB" || -z "$ARCH_LIB" ]]; then
+    if [ -z "$GENERICS_LIB" ] || [ -z "$UBUNTU_LIB" ] || [ -z "$FEDORA_LIB" ] || [ -z "$ARCH_LIB" ]; then
         echo "One or more required environment variables are missing. Please check your .env file."
         exit 1
     fi
@@ -36,11 +45,11 @@ validate_package_manager(){
 }
 
 remove_docker_alias() {
-    if grep -q "alias docker='$CONTAINER_LIB'" ~/.bashrc; then
+    if grep -q "alias docker='$CONTAINER_LIB'" ~/.bashrc 2>/dev/null; then
         echo "Removing alias for docker to $CONTAINER_LIB in ~/.bashrc..."
-        sed -i "/alias docker='$CONTAINER_LIB'/d" ~/.bashrc
-        echo "Alias removed. Please run 'source ~/.bashrc' or restart your terminal to apply the changes."
-        source ~/.bashrc
+        sed -i "/alias docker='$CONTAINER_LIB'/d" ~/.bashrc || true
+        echo "Alias removed. Please run '. ~/.bashrc' or restart your terminal to apply the changes."
+        . ~/.bashrc || true
     else
         echo "Alias for docker to $CONTAINER_LIB does not exist in ~/.bashrc."
     fi
@@ -50,19 +59,19 @@ remove_docker_alias() {
 uninstall_packages() {
     case "$PACKAGE_MANAGER" in
         apt)
-            echo "Removing $UBUNTU_LIB, $GENERICS_LIB, $CONTAINER_LIB..."
-            sudo apt remove --purge -y $UBUNTU_LIB $GENERICS_LIB $CONTAINER_LIB
+            echo "Removing $UBUNTU_LIB, $GENERICS_LIB_SPACED, $CONTAINER_LIB..."
+            sudo apt remove --purge -y $UBUNTU_LIB $GENERICS_LIB_SPACED $CONTAINER_LIB
             echo "Autoremove unnecessary dependencies..."
             sudo apt autoremove -y
             ;;
         dnf)
             echo "Removing development tools group and additional packages..."
             sudo dnf groupremove -y "$FEDORA_LIB"
-            sudo dnf remove -y $GENERICS_LIB $CONTAINER_LIB
+            sudo dnf remove -y $GENERICS_LIB_SPACED $CONTAINER_LIB
             ;;
         pacman)
-            echo "Removing $ARCH_LIB, $GENERICS_LIB, $CONTAINER_LIB..."
-            sudo pacman -Rns --noconfirm $ARCH_LIB $GENERICS_LIB $CONTAINER_LIB
+            echo "Removing $ARCH_LIB, $GENERICS_LIB_SPACED, $CONTAINER_LIB..."
+            sudo pacman -Rns --noconfirm $ARCH_LIB $GENERICS_LIB_SPACED $CONTAINER_LIB || true
             ;;
     esac
 }

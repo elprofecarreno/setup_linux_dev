@@ -1,21 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-set -euo pipefail
+set -e
 
-# Return the absolute directory of the currently-executing script file.
-# Works when the file is executed or when it is sourced.
+# Return the absolute directory of a script path.
+# Accepts an optional path argument; otherwise attempts to use $0 or ${BASH_SOURCE} when available.
 get_script_dir() {
-  local src
-  # If common.sh is sourced, BASH_SOURCE[1] refers to the caller script.
-  # If it's executed directly, fall back to BASH_SOURCE[0] or $0.
-  if [ "${#BASH_SOURCE[@]}" -gt 1 ] && [ -n "${BASH_SOURCE[1]:-}" ]; then
-    src="${BASH_SOURCE[1]}"
-  else
-    src="${BASH_SOURCE[0]:-$0}"
-  fi
-  # resolve symlink if possible
+  src="${1:-${BASH_SOURCE:-$0}}"
   if command -v readlink >/dev/null 2>&1; then
-    local resolved
     resolved="$(readlink -f "$src" 2>/dev/null || printf '%s' "$src")"
     printf '%s' "$(cd "$(dirname "$resolved")" >/dev/null 2>&1 && pwd)"
   else
@@ -23,16 +14,16 @@ get_script_dir() {
   fi
 }
 
-# Load .env located in BASE_DIR or in the script directory if BASE_DIR not set.
+# Load .env located in BASE_DIR if set, otherwise try ENV_FILE if provided.
 load_env() {
-  local script_dir
-  script_dir="$(get_script_dir)"
-  BASE_DIR="${BASE_DIR:-$script_dir}"
-  if [ -f "$BASE_DIR/.env" ]; then
+  if [ -n "${BASE_DIR:-}" ] && [ -f "$BASE_DIR/.env" ]; then
     # shellcheck source=/dev/null
-    source "$BASE_DIR/.env"
+    . "$BASE_DIR/.env"
+  elif [ -n "${ENV_FILE:-}" ] && [ -f "$ENV_FILE" ]; then
+    # shellcheck source=/dev/null
+    . "$ENV_FILE"
   else
-    echo "Warning: $BASE_DIR/.env not found; relying on environment variables." >&2
+    echo "Warning: .env not found in BASE_DIR or ENV_FILE; relying on environment variables." >&2
   fi
 }
 
@@ -52,10 +43,8 @@ detect_runtime() {
   export CONTAINER_RUNTIME
 }
 
-# Helper: run a container using the detected runtime (preserves common flags)
+# Helper: run a container using the detected runtime
 run_container() {
   detect_runtime || return 1
-  # first arg is the runtime command to use (run/start/rm/etc)
-  local cmd="$CONTAINER_RUNTIME"
-  "$cmd" "$@"
+  "$CONTAINER_RUNTIME" "$@"
 }
